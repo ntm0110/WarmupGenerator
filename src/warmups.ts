@@ -123,11 +123,4 @@ const lesson2Warmups: warmup[] = [
   },
 ];
 
-// {
-//     lesson: 2,
-//     title: "",
-//     url: "",
-//     imageUrl: "",
-//   },
-
 export const warmups = lesson1Warmups.concat(lesson2Warmups);

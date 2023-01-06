@@ -2,13 +2,49 @@ import * as React from "react";
 import { shuffle } from "./utils";
 import { warmup, warmups } from "./warmups";
 
-const lessons = ["1", "2", "3", "4", "5", "6", "7"];
+const lessons = ["1", "2"];
+
+const generateWarmups = (numToPick: string, highestLevel: string) => {
+  const numWarmups = parseInt(numToPick);
+  if (isNaN(numWarmups)) {
+    return <></>;
+  } else {
+    const filteredWarmups: warmup[] = warmups.filter(
+      (warmup) => warmup.lesson <= parseInt(highestLevel)
+    );
+
+    shuffle(filteredWarmups);
+    const numSamples = Math.min(filteredWarmups.length, numWarmups);
+
+    return filteredWarmups.slice(0, numSamples).map((warmup: warmup) => {
+      return (
+        <li key={warmup.title} className="list-group-item m-1">
+          <div className="card">
+            <div className="col card-body d-flex justify-content-center">
+              <a href={warmup.url} className="card-link">
+                Lesson {warmup.lesson.toString()}: {warmup.title}
+              </a>
+            </div>
+            <img
+              className="card-img-top"
+              src={warmup.imageUrl}
+              alt="Missing lesson image"
+              style={{ height: "100%", width: "100%" }}
+            />
+          </div>
+        </li>
+      );
+    });
+  }
+};
 
 function App() {
   const [numberOfWarmups, setNumberOfWarmups] = React.useState("3");
   const [numberOfWarmupsTemp, setNumberOfWarmupsTemp] = React.useState("3");
   const [highestLevelCompleted, setHighestLevelCompleted] = React.useState("2");
-  const [randomWarmups, setRandomWarmups] = React.useState(null);
+  const [randomWarmups, setRandomWarmups] = React.useState(
+    generateWarmups(numberOfWarmups, highestLevelCompleted)
+  );
 
   const getClasses = () => {
     let classesToUse = "list-group justify-content-center";
@@ -18,45 +54,11 @@ function App() {
     return classesToUse;
   };
 
-  const generateWarmups = (numToPick: string) => {
-    const numWarmups = parseInt(numToPick);
-    if (isNaN(numWarmups)) {
-      return <></>;
-    } else {
-      const filteredWarmups: warmup[] = warmups.filter(
-        (warmup) => warmup.lesson <= parseInt(highestLevelCompleted)
-      );
-
-      shuffle(filteredWarmups);
-      const numSamples = Math.min(filteredWarmups.length, numWarmups);
-
-      return filteredWarmups.slice(0, numSamples).map((warmup: warmup) => {
-        return (
-          <li key={warmup.title} className="list-group-item m-1">
-            <div className="card">
-              <div className="card-body d-flex justify-content-center">
-                <a href={warmup.url} className="card-link">
-                  {warmup.title}
-                </a>
-              </div>
-              <img
-                className="card-img-top"
-                src={warmup.imageUrl}
-                alt="Missing lesson image"
-                style={{ height: "100%", width: "100%" }}
-              />
-            </div>
-          </li>
-        );
-      });
-    }
-  };
-
   return (
     <div className="App p-3">
       <div className="row w-100 d-flex align-items-end justify-content-center">
         <div className="col-3">
-          <label className="form-label">Highest DAB level completed</label>
+          <label className="form-label">Included lessons</label>
           <select
             className="form-select"
             aria-label="Default select example"
@@ -95,7 +97,9 @@ function App() {
             className="btn btn-primary"
             onClick={() => {
               setNumberOfWarmups(numberOfWarmupsTemp);
-              setRandomWarmups(generateWarmups(numberOfWarmupsTemp));
+              setRandomWarmups(
+                generateWarmups(numberOfWarmupsTemp, highestLevelCompleted)
+              );
             }}
           >
             Generate
