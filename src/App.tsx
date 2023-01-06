@@ -1,67 +1,51 @@
 import * as React from "react";
-import "./App.css";
-
-// Fisher-Yates (aka Knuth) Shuffle
-// https://stackoverflow.com/questions/2450954/how-to-randomize-shuffle-a-javascript-array
-function shuffle(array: any[]) {
-  let currentIndex = array.length,
-    randomIndex;
-
-  // While there remain elements to shuffle.
-  while (currentIndex != 0) {
-    // Pick a remaining element.
-    randomIndex = Math.floor(Math.random() * currentIndex);
-    currentIndex--;
-
-    // And swap it with the current element.
-    [array[currentIndex], array[randomIndex]] = [
-      array[randomIndex],
-      array[currentIndex],
-    ];
-  }
-
-  return array;
-}
+import { shuffle } from "./utils";
+import { warmup, warmups } from "./warmups";
 
 const lessons = ["1", "2", "3", "4", "5", "6", "7"];
 
-const warmupsPerLesson = {
-  "1": [
-    "Superimposed lines",
-    "Ghosted Lines",
-    "Ghosted Planes",
-    "Tables of Ellipses",
-    "Ellipses in Planes",
-    "Funnels",
-    "Plotted Perspective",
-    "Rough Perspective",
-  ],
-  "2": ["some test one a", "some test one b"],
-  "3": ["some tester A", "some testER B"],
-};
-
 function App() {
   const [numberOfWarmups, setNumberOfWarmups] = React.useState("3");
+  const [numberOfWarmupsTemp, setNumberOfWarmupsTemp] = React.useState("3");
   const [highestLevelCompleted, setHighestLevelCompleted] = React.useState("2");
-  const [warmups, setWarmups] = React.useState(null);
+  const [randomWarmups, setRandomWarmups] = React.useState(null);
 
-  const generateWarmups = () => {
-    const numWarmups = parseInt(numberOfWarmups);
+  const getClasses = () => {
+    let classesToUse = "list-group justify-content-center";
+    if (parseInt(numberOfWarmups) <= 5) {
+      classesToUse += " align-items-start list-group-horizontal";
+    }
+    return classesToUse;
+  };
+
+  const generateWarmups = (numToPick: string) => {
+    const numWarmups = parseInt(numToPick);
     if (isNaN(numWarmups)) {
       return <></>;
     } else {
-      const filteredWarmups = Object.entries(warmupsPerLesson)
-        .filter(
-          (entry) => parseInt(entry[0]) <= parseInt(highestLevelCompleted)
-        )
-        .map((entry) => entry[1])
-        .flat();
+      const filteredWarmups: warmup[] = warmups.filter(
+        (warmup) => warmup.lesson <= parseInt(highestLevelCompleted)
+      );
+
       shuffle(filteredWarmups);
       const numSamples = Math.min(filteredWarmups.length, numWarmups);
-      return filteredWarmups.slice(0, numSamples).map((warmup) => {
+
+      return filteredWarmups.slice(0, numSamples).map((warmup: warmup) => {
         return (
-          <li key={warmup} className="list-group-item m-1">
-            {warmup}
+          <li key={warmup.title} className="list-group-item m-1">
+            <div className="card">
+              <div className="card-body d-flex justify-content-center">
+                <a href={warmup.url} className="card-link">
+                  {warmup.title}
+                </a>
+              </div>
+              <img
+                className="card-img-top"
+                src={warmup.imageUrl}
+                alt="Missing lesson image"
+                style={{ height: "100%", width: "100%" }}
+              />
+            </div>
           </li>
         );
       });
@@ -95,11 +79,13 @@ function App() {
             <label className="form-label">Number of warmups</label>
             <input
               className="form-control"
-              value={numberOfWarmups}
               onChange={(e) => {
                 const val = parseInt(e.target.value);
-                isNaN(val) ? setNumberOfWarmups("") : setNumberOfWarmups(val);
+                isNaN(val)
+                  ? setNumberOfWarmupsTemp("")
+                  : setNumberOfWarmupsTemp(e.target.value);
               }}
+              defaultValue={numberOfWarmups}
             />
           </div>
         </div>
@@ -108,16 +94,17 @@ function App() {
             type="button"
             className="btn btn-primary"
             onClick={() => {
-              setWarmups(generateWarmups());
+              setNumberOfWarmups(numberOfWarmupsTemp);
+              setRandomWarmups(generateWarmups(numberOfWarmupsTemp));
             }}
           >
             Generate
           </button>
         </div>
       </div>
-      <div className="row w-100 pt-5 d-flex align-items-end justify-content-center">
-        <div className="col-3">
-          <ul className="list-group">{warmups}</ul>
+      <div className="row pt-5 d-flex justify-content-center">
+        <div className={parseInt(numberOfWarmups) > 5 ? "col col-lg-4" : "col"}>
+          <ul className={getClasses()}>{randomWarmups}</ul>
         </div>
       </div>
     </div>
